@@ -2,16 +2,14 @@
 ______________                ______________
 ______________ \  /\  /|\  /| ______________
 ______________  \/  \/ | \/ | ______________
---Module Name:  rgb_to_lab_tb.sv
+--Module Name:  CIELAB_tb.sv
 --Project Name: rgb-lab
 --Data modified: 2015-10-09 13:23:48 +0800
 --author:Young-ÎâÃ÷
 --E-mail: wmy367@Gmail.com
 ****************************************/
 `timescale 1ns/1ps
-module rgb_to_lab_tb;
-
-import StreamFilePkg::*;
+module CIELAB_tb;
 
 //----->> CLOCK AND RESET <<------------
 wire		clk_50M;
@@ -29,6 +27,7 @@ initial begin:INITIAL_CLOCK
 	clk_rst_inst.run(10 , 1000/50 ,0);
 end
 //-----<< CLOCK AND RESET >>------------
+//----->> INSTANCE <<-------------------
 localparam		DSIZE = 16;
 
 logic[DSIZE-1:0]		R = 0,G = 0,B = 0;
@@ -46,7 +45,21 @@ rgb_to_lab_verb #(
 	.CIE_B      (CIE_B          )
 );
 
-//----->> GEN IMAGE DATA <<-------------
+wire[DSIZE-1:0]	OUT_R,OUT_G,OUT_B;
+
+lab_to_rgb #(
+	.DSIZE		(DSIZE			)
+)lab_to_rgb_inst(
+	.clock 		(clock			),
+	.CIE_L  	(CIE_L          ),
+	.CIE_A  	(CIE_A          ),
+	.CIE_B  	(CIE_B          ),
+	.R      	(OUT_R          ),
+	.G      	(OUT_G          ),
+	.B      	(OUT_B          )
+);
+//----<< INSTANCE >>-------------------
+//----->> GEN IMAGE DATA <<------------
 logic[2:0] cnt = 0;
 task automatic gen_fringe_data (
 	ref logic [DSIZE-1:0] 	data0,
@@ -103,48 +116,52 @@ rdata	= {DSIZE{1'b0}};
 gdata	= {DSIZE{1'b0}};
 bdata	= {DSIZE{1'b0}};
 endtask: gen_random_rgb
-	
-//-----<< GEN RANDOM DATA >>------------
-//----->> SAVE TO FILE <<---------------
-StreamFileClass streamfile = new("E:/work/video_process_module/CIELAB/rgb_lab.txt");
 
-task save_rgb_lab (
-	int	rdata,
-	int	gdata,
-	int	bdata,
-	int	cie_ldata,
-	int	cie_adata,
-	int	cie_bdata,
-	int xdata,
-	int ydata,
-	int zdata
-);
-
-streamfile.puts({rdata,gdata,bdata,cie_ldata,cie_adata,cie_bdata,xdata,ydata,zdata});
-
-endtask: save_rgb_lab
-//-----<< SAVE TO FILE >>---------------
 initial begin
 	wait(rst_n);
 	gen_fringe_data(R,G,B);
 	gen_random_rgb(R,G,B,1000);
+	//R	= {DSIZE{1'b1}};
+	//G	= {DSIZE{1'b0}};
+	//B	= {DSIZE{1'b0}}; 
+end 
+	
+//-----<< GEN RANDOM DATA >>------------
+//-----<< SAVE TO FILE >>---------------
+
+logic [DSIZE-1:0]	SR,SG,SB;
+
+latency #(
+	.DSIZE	(3*DSIZE),
+	.LAT	(25		)
+)lat_rgb(
+	clock,
+	rst_n,
+	{R,G,B},
+	{SR,SG,SB}
+);
+
+logic signed[DSIZE-1:0]		SCIE_L,SCIE_A,SCIE_B;
+always@(CIE_L,CIE_A,CIE_B)begin
+	{SCIE_L,SCIE_A,SCIE_B}	= {CIE_L,CIE_A,CIE_B};
 end
 
-initial begin
-	wait(rst_n);
-//	repeat(4)	@(posedge clock);
-	$display("--->>SAVING TO FINISH .....");
-	repeat(1000)begin
-		@(negedge clock);
-		save_rgb_lab(R,G,B,CIE_L,CIE_A,CIE_B,rgb_to_lab_inst.X,rgb_to_lab_inst.Y,rgb_to_lab_inst.Z);
-	end
-	streamfile.close_file();
-	$display("---->>SAVE TO FILE FINISH");
-end
+stream_to_file #(
+	.FILE_PATH		("E:/work/video_process_module/CIELAB/in_out_rgb.txt"),
+	.HEAD_MARK		(""),
+	.DATA_SPLIT		("     "),
+	.TRIGGER_TOTAL	(1000	)
+)lab_to_file_inst(
+	.enable				(1'b1		),
+	.posedge_trigger	(			),
+	.negedge_trigger    (clock		),
+	.signal_trigger     (			),
+	.data 		        ('{SR,SG,SB,OUT_R,OUT_G,OUT_B})
+);
+
+
 
 endmodule
-
-	
 
 
 

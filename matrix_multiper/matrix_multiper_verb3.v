@@ -2,16 +2,17 @@
 ______________                ______________
 ______________ \  /\  /|\  /| ______________
 ______________  \/  \/ | \/ | ______________
---Module Name:  matrix_multiper_verb2.v
+--Module Name:  matrix_multiper_verb3.v
 --Project Name: rgb-lab
 --Data modified: 2015-10-09 13:23:48 +0800
 --author:Young-ÎâÃ÷
 --E-mail: wmy367@Gmail.com
 ****************************************/
 `timescale 1ns/1ps
-module matrix_multiper_verb2 #(
+module matrix_multiper_verb3 #(
 	parameter DSIZE	= 8			,
-	parameter MSIZE	= 8
+	parameter MSIZE	= 8       	,
+	parameter NSIZE = 1
 )(
 	input				clock	,
 	input [DSIZE-1:0]	iR      ,
@@ -28,9 +29,9 @@ module matrix_multiper_verb2 #(
 	input [MSIZE-1:0]	M21     ,
 	input [MSIZE-1:0]	M22     ,
 	
-	output[DSIZE+1:0]	Ro 		,    //sign+(D>1)+(I<1)
-	output[DSIZE+1:0]	Go      ,
-	output[DSIZE+1:0]	Bo
+	output[DSIZE+NSIZE+1:0]	Ro 		,    //sign+(D>1)+(I<1)
+	output[DSIZE+NSIZE+1:0]	Go      ,
+	output[DSIZE+NSIZE+1:0]	Bo
 );
 wire[MSIZE-2:0]		MM00	;
 wire[MSIZE-2:0]		MM01    ;
@@ -169,9 +170,9 @@ always@(posedge clock)begin
     ADD_20_21_22	<=	ADD_20_21 + ADD_22	;
 end
 
-assign	Ro	= ADD_00_01_02[DSIZE+MSIZE-0-:(DSIZE+2)]	;	
-assign	Go	= ADD_10_11_12[DSIZE+MSIZE-0-:(DSIZE+2)]	;
-assign	Bo	= ADD_20_21_22[DSIZE+MSIZE-0-:(DSIZE+2)]	;
+assign	Ro	= ADD_00_01_02[DSIZE+MSIZE-0-:(DSIZE+1+NSIZE+1)]	;	
+assign	Go	= ADD_10_11_12[DSIZE+MSIZE-0-:(DSIZE+1+NSIZE+1)]	;
+assign	Bo	= ADD_20_21_22[DSIZE+MSIZE-0-:(DSIZE+1+NSIZE+1)]	;
 
 endmodule
 

@@ -4,7 +4,7 @@ ______________ \  /\  /|\  /| ______________
 ______________  \/  \/ | \/ | ______________
 --Module Name:  RGB_XYZ_verb.v
 --Project Name: rgb-lab
---Data modified: 2015-09-25 11:19:09 +0800
+--Data modified: 2015-10-09 13:23:48 +0800
 --author:Young-ÎâÃ÷
 --E-mail: wmy367@Gmail.com
 ****************************************/
